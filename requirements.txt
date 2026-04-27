@@ -1,5 +1,5 @@
 python-telegram-bot==21.6
-anthropic
+google-generativeai
 python-dotenv
 asyncpg
 apscheduler
