@@ -1,3 +1,6 @@
 python-telegram-bot==21.6
 anthropic
 python-dotenv
+asyncpg
+apscheduler
+pytz
