@@ -6,21 +6,23 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import anthropic
+import google.generativeai as genai
 
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 MOSCOW_TZ = pytz.timezone("Europe/Moscow")
 
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-SYSTEM_PROMPT = """Ты — личный ассистент и бизнес-тренер Матвея.
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction="""Ты — личный ассистент и бизнес-тренер Матвея.
 Твоя задача — помогать ему достигать целей.
 Ты придерживаешься учений Кови, понимаешь метод Гарварда, умеешь фокусироваться на главном.
 Отвечай по-русски, коротко и по делу. Без воды."""
+)
 
 DIARY_QUESTIONS = [
     "📔 Доброе утро, Матвей! Время дневника.\n\n*Вопрос 1/4* — Как ты себя чувствуешь сегодня утром?",
@@ -191,13 +193,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await context.bot.send_chat_action(chat_id=chat_id, action="typing")
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=history
-        )
-        assistant_reply = response.content[0].text
+        # Формируем историю в формате Gemini
+        gemini_history = []
+        for msg in history[:-1]:
+            gemini_history.append({
+                "role": "user" if msg["role"] == "user" else "model",
+                "parts": [msg["content"]]
+            })
+        chat = model.start_chat(history=gemini_history)
+        response = chat.send_message(user_text)
+        assistant_reply = response.text
         conversation_history[chat_id].append({"role": "assistant", "content": assistant_reply})
         await update.message.reply_text(assistant_reply)
     except Exception as e:
