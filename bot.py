@@ -17,7 +17,7 @@ MOSCOW_TZ = pytz.timezone("Europe/Moscow")
 
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-2.0-flash",
     system_instruction="""Ты — личный ассистент и бизнес-тренер Матвея.
 Твоя задача — помогать ему достигать целей.
 Ты придерживаешься учений Кови, понимаешь метод Гарварда, умеешь фокусироваться на главном.
