@@ -1,5 +1,5 @@
 python-telegram-bot==21.6
-google-generativeai
+groq
 python-dotenv
 asyncpg
 apscheduler
